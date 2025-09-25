@@ -36,3 +36,5 @@ next-env.d.ts
 
 # High scores storage (contains user data)
 .highscores.json
+
+package-lock.json
