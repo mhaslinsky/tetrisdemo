@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { Board, Tetromino, TetrominoType } from "@/types";
 import { TETROMINO_COLORS, BOARD_WIDTH, BOARD_HEIGHT } from "@/constants/game";
+import { findHardDropPosition } from "@/lib/collision";
 
 interface GameBoardProps {
   board: Board;
@@ -21,6 +22,7 @@ interface BlockProps {
   isHardDropping?: boolean;
   isLocking?: boolean;
   isRotating?: boolean;
+  isGhost?: boolean;
   className?: string;
 }
 
@@ -37,6 +39,7 @@ const Block: React.FC<BlockProps> = React.memo(
     isHardDropping = false,
     isLocking = false,
     isRotating = false,
+    isGhost = false,
     className = "",
   }) => {
     const blockClasses = useMemo(() => {
@@ -47,23 +50,24 @@ const Block: React.FC<BlockProps> = React.memo(
       }
 
       const colorClasses = TETROMINO_COLORS[type];
-      const activeClasses = isActive ? "brightness-110 shadow-lg scale-105" : "";
+      const activeClasses = isActive && !isGhost ? "brightness-110 shadow-lg scale-105" : "";
+      const ghostClasses = isGhost ? "tetris-block-ghost relative" : "";
       const clearingClasses = isClearing ? "tetris-line-clear" : "";
       const droppingClasses = isDropping ? "animate-bounce" : "";
       const hardDropClasses = isHardDropping ? "tetris-hard-drop" : "";
       const lockingClasses = isLocking ? "tetris-piece-lock" : "";
       const rotatingClasses = isRotating ? "tetris-rotation" : "";
 
-      return `${baseClasses} ${colorClasses} ${activeClasses} ${clearingClasses} ${droppingClasses} ${hardDropClasses} ${lockingClasses} ${rotatingClasses} ${className}`;
-    }, [type, isActive, isClearing, isDropping, isHardDropping, isLocking, isRotating, className]);
+      return `${baseClasses} ${colorClasses} ${activeClasses} ${ghostClasses} ${clearingClasses} ${droppingClasses} ${hardDropClasses} ${lockingClasses} ${rotatingClasses} ${className}`;
+    }, [type, isActive, isClearing, isDropping, isHardDropping, isLocking, isRotating, isGhost, className]);
 
     const testId = useMemo(() => {
       if (!type) return "empty-block";
 
-      return `block-${type}${isActive ? "-active" : ""}${isClearing ? "-clearing" : ""}${
+      return `block-${type}${isActive ? "-active" : ""}${isGhost ? "-ghost" : ""}${isClearing ? "-clearing" : ""}${
         isDropping ? "-dropping" : ""
       }${isHardDropping ? "-hard-dropping" : ""}${isLocking ? "-locking" : ""}${isRotating ? "-rotating" : ""}`;
-    }, [type, isActive, isClearing, isDropping, isHardDropping, isLocking, isRotating]);
+    }, [type, isActive, isGhost, isClearing, isDropping, isHardDropping, isLocking, isRotating]);
 
     return <div className={blockClasses} data-testid={testId} />;
   }
@@ -217,6 +221,12 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo(
       },
       [currentPiece, pieceAnimation]
     );
+    // Calculate ghost piece position
+    const ghostPiece = useMemo((): Tetromino | null => {
+      if (!currentPiece) return null;
+      return findHardDropPosition(board, currentPiece);
+    }, [board, currentPiece]);
+
     // Memoize the combined board calculation to avoid expensive operations on every render
     const combinedBoard = useMemo((): (TetrominoType | null)[][] => {
       // Start with a copy of the current board
@@ -264,6 +274,30 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo(
       [currentPiece]
     );
 
+    // Check if a block is a ghost block (where piece would land)
+    const isGhostBlock = useCallback(
+      (row: number, col: number): boolean => {
+        if (!ghostPiece || !currentPiece) return false;
+
+        // Don't show ghost if it's at the same position as current piece
+        if (ghostPiece.position.y === currentPiece.position.y) return false;
+
+        const { shape, position } = ghostPiece;
+        const relativeRow = row - position.y;
+        const relativeCol = col - position.x;
+
+        return (
+          relativeRow >= 0 &&
+          relativeRow < shape.length &&
+          relativeCol >= 0 &&
+          relativeCol < shape[relativeRow].length &&
+          shape[relativeRow][relativeCol] &&
+          !isActiveBlock(row, col) // Don't show ghost where current piece is
+        );
+      },
+      [ghostPiece, currentPiece, isActiveBlock]
+    );
+
     return (
       <div
         className={`
@@ -305,8 +339,9 @@ export const GameBoard: React.FC<GameBoardProps> = React.memo(
                   }${isActiveBlock(rowIndex, colIndex) ? " (active piece)" : ""}`}
                 >
                   <Block
-                    type={cellType}
+                    type={cellType || (isGhostBlock(rowIndex, colIndex) ? ghostPiece?.type || null : null)}
                     isActive={isActiveBlock(rowIndex, colIndex)}
+                    isGhost={isGhostBlock(rowIndex, colIndex)}
                     isClearing={isLineClearing(rowIndex)}
                     isDropping={isBlockDropping(rowIndex, colIndex)}
                     isHardDropping={isBlockHardDropping(rowIndex, colIndex)}

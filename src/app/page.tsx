@@ -316,12 +316,11 @@ export default function Home() {
           <div className='flex justify-center items-center space-x-4 text-xs'>
             <span>Built with Next.js, React, and TypeScript</span>
             <span>•</span>
-            <span>Optimized for 60fps gameplay</span>
+            <span>Optimized for 60+fps gameplay</span>
             <span>•</span>
             <span>Fully accessible</span>
           </div>
           <div className='flex justify-center items-center space-x-4'>
-            <span>© 2024 Tetris Web Game</span>
             <span>•</span>
             <span>Press F11 for fullscreen</span>
           </div>

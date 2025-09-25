@@ -1,8 +1,8 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import { HighScore, SubmitHighScoreRequest } from '@/types/highscore';
+import { promises as fs } from "fs";
+import path from "path";
+import { HighScore, SubmitHighScoreRequest } from "@/types/highscore";
 
-const HIGHSCORES_FILE = path.join(process.cwd(), '.highscores.json');
+const HIGHSCORES_FILE = path.join(process.cwd(), ".highscores.json");
 const MAX_HIGHSCORES = 10;
 
 // Generate unique ID
@@ -13,14 +13,14 @@ function generateId(): string {
 // Read high scores from file
 async function readHighScores(): Promise<HighScore[]> {
   try {
-    const data = await fs.readFile(HIGHSCORES_FILE, 'utf-8');
+    const data = await fs.readFile(HIGHSCORES_FILE, "utf-8");
     const scores = JSON.parse(data) as HighScore[];
 
     // Sort by score descending
     return scores.sort((a, b) => b.score - a.score);
   } catch (error) {
     // File doesn't exist or is invalid, return empty array
-    console.log('No high scores file found or invalid format, starting fresh');
+    console.log("No high scores file found or invalid format, starting fresh");
     return [];
   }
 }
@@ -29,14 +29,12 @@ async function readHighScores(): Promise<HighScore[]> {
 async function writeHighScores(scores: HighScore[]): Promise<void> {
   try {
     // Sort by score descending and take only top 10
-    const sortedScores = scores
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX_HIGHSCORES);
+    const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, MAX_HIGHSCORES);
 
-    await fs.writeFile(HIGHSCORES_FILE, JSON.stringify(sortedScores, null, 2), 'utf-8');
+    await fs.writeFile(HIGHSCORES_FILE, JSON.stringify(sortedScores, null, 2), "utf-8");
   } catch (error) {
-    console.error('Failed to write high scores:', error);
-    throw new Error('Failed to save high score');
+    console.error("Failed to write high scores:", error);
+    throw new Error("Failed to save high score");
   }
 }
 
@@ -51,14 +49,14 @@ export async function qualifiesForHighScore(score: number): Promise<{ qualifies:
 
   // If we have less than 10 scores, it automatically qualifies
   if (scores.length < MAX_HIGHSCORES) {
-    const rank = scores.filter(s => s.score > score).length + 1;
+    const rank = scores.filter((s) => s.score > score).length + 1;
     return { qualifies: true, rank };
   }
 
   // Check if score is higher than the lowest score
   const lowestScore = scores[scores.length - 1].score;
   if (score > lowestScore) {
-    const rank = scores.filter(s => s.score > score).length + 1;
+    const rank = scores.filter((s) => s.score > score).length + 1;
     return { qualifies: true, rank };
   }
 
@@ -76,7 +74,7 @@ export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promis
   // Create new high score entry
   const newScore: HighScore = {
     id: generateId(),
-    playerName: scoreData.playerName.trim() || 'Anonymous',
+    playerName: scoreData.playerName.trim() || "Anonymous",
     score: scoreData.score,
     level: scoreData.level,
     linesCleared: scoreData.linesCleared,
@@ -90,7 +88,7 @@ export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promis
   const sortedScores = scores.sort((a, b) => b.score - a.score);
 
   // Find the rank of the new score
-  const rank = sortedScores.findIndex(s => s.id === newScore.id) + 1;
+  const rank = sortedScores.findIndex((s) => s.id === newScore.id) + 1;
 
   // Check if it's a new high score (top 10)
   const isNewHighScore = rank <= MAX_HIGHSCORES;
@@ -114,7 +112,18 @@ export async function initializeHighScores(): Promise<void> {
     await fs.access(HIGHSCORES_FILE);
   } catch {
     // File doesn't exist, create it with empty array
+    const initialHighScores: HighScore[] = [
+      {
+        id: generateId(),
+        playerName: "Mike H",
+        score: 59395,
+        level: 9,
+        linesCleared: 85,
+        date: "2025-09-25T00:00:00.000Z",
+      },
+    ];
+    await writeHighScores(initialHighScores);
+    console.log("Initialized high scores file with hardcoded score");
     await writeHighScores([]);
-    console.log('Initialized high scores file');
   }
 }

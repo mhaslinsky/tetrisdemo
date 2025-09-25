@@ -102,6 +102,20 @@
   .tetris-game-over {
     animation: gameOver 1s ease-in-out;
   }
+
+  /* Ghost piece styling - shows where piece will land */
+  .tetris-block-ghost {
+    @apply opacity-20 border-dashed border-opacity-60;
+  }
+
+  .tetris-block-ghost::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px dashed currentColor;
+    border-radius: 2px;
+    opacity: 0.4;
+  }
 }
 
 @keyframes pieceLock {
