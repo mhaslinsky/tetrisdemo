@@ -1,0 +1,47 @@
+{
+  "name": "tetris-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "jest --testPathPattern=e2e",
+    "test:performance": "jest --testPathPattern=performance",
+    "test:accessibility": "jest --testPathPattern=accessibility",
+    "test:visual": "jest --testPathPattern=visual",
+    "test:comprehensive": "jest --testPathPattern='(integration|e2e|performance|accessibility|visual)' --watchAll=false --verbose",
+    "test:all": "jest --coverage --verbose",
+    "test:ci": "jest --ci --coverage --watchAll=false --verbose",
+    "test:regression": "jest --testPathPattern='(performance|visual)' --watchAll=false",
+    "test:a11y": "jest --testPathPattern='accessibility' --watchAll=false",
+    "test:smoke": "jest --testPathPattern='integration' --watchAll=false --maxWorkers=1",
+    "test:comprehensive-report": "node scripts/run-comprehensive-tests.js"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^13.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "autoprefixer": "^10.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "14.0.0",
+    "jest": "^29.0.0",
+    "jest-axe": "^10.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "postcss": "^8.0.0",
+    "tailwindcss": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,477 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-900 text-white;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Improve focus visibility */
+  *:focus {
+    outline: 2px solid theme("colors.blue.500");
+    outline-offset: 2px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+}
+
+@layer components {
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .tetris-block {
+    @apply w-8 h-8 border border-gray-600;
+  }
+
+  .tetris-block-filled {
+    @apply border-2 border-opacity-80;
+  }
+
+  .tetris-block-active {
+    @apply brightness-110 shadow-lg transform scale-105 transition-all duration-150;
+  }
+
+  .tetris-block-clearing {
+    @apply animate-pulse brightness-200;
+  }
+
+  .tetris-block-dropping {
+    @apply animate-bounce;
+  }
+
+  .tetris-line-clearing {
+    @apply animate-pulse scale-110 transition-all duration-200;
+  }
+
+  .tetris-board-rotate {
+    @apply animate-pulse;
+  }
+
+  /* Enhanced animations for better visual feedback */
+  .tetris-piece-lock {
+    animation: pieceLock 0.3s ease-out;
+  }
+
+  .tetris-line-clear {
+    animation: lineClear 0.6s ease-in-out;
+  }
+
+  .tetris-hard-drop {
+    animation: hardDrop 0.2s ease-in;
+  }
+
+  .tetris-rotation {
+    animation: pieceRotate 0.2s ease-out;
+  }
+
+  .tetris-level-up {
+    animation: levelUp 0.8s ease-out;
+  }
+
+  .tetris-game-over {
+    animation: gameOver 1s ease-in-out;
+  }
+}
+
+@keyframes pieceLock {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes lineClear {
+  0% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 1;
+  }
+  25% {
+    transform: scaleX(1.05) scaleY(1.1);
+    filter: brightness(1.5);
+  }
+  50% {
+    transform: scaleX(1.1) scaleY(0.8);
+    filter: brightness(2);
+  }
+  75% {
+    transform: scaleX(1.2) scaleY(0.4);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scaleX(1.3) scaleY(0.1);
+    opacity: 0;
+  }
+}
+
+@keyframes hardDrop {
+  0% {
+    transform: translateY(-10px) scaleY(1.2);
+  }
+  50% {
+    transform: translateY(0) scaleY(0.8);
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes pieceRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.1);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: rotate(90deg) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes levelUp {
+  0% {
+    transform: scale(1);
+    color: currentColor;
+    text-shadow: none;
+  }
+  25% {
+    transform: scale(1.2);
+    color: #fbbf24;
+    text-shadow: 0 0 10px #fbbf24;
+  }
+  50% {
+    transform: scale(1.3);
+    color: #f59e0b;
+    text-shadow: 0 0 20px #f59e0b;
+  }
+  75% {
+    transform: scale(1.1);
+    color: #d97706;
+    text-shadow: 0 0 15px #d97706;
+  }
+  100% {
+    transform: scale(1);
+    color: currentColor;
+    text-shadow: none;
+  }
+}
+
+@keyframes gameOver {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(0.95) rotate(-2deg);
+    filter: brightness(0.8);
+  }
+  50% {
+    transform: scale(0.9) rotate(2deg);
+    filter: brightness(0.6);
+  }
+  75% {
+    transform: scale(0.95) rotate(-1deg);
+    filter: brightness(0.4);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.3;
+    filter: brightness(0.3);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.8);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Additional utility classes for polish */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  background: rgba(17, 24, 39, 0.8);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.glow-effect {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Improved button styles */
+.btn-primary {
+  @apply px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-semibold;
+  @apply focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  @apply active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200;
+  @apply focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  @apply active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Enhanced card styles */
+.card {
+  @apply bg-gray-800 rounded-lg border border-gray-600 shadow-lg;
+  @apply hover:border-gray-500 transition-all duration-200;
+}
+
+.card-header {
+  @apply px-4 py-3 border-b border-gray-600;
+}
+
+.card-body {
+  @apply p-4;
+}
+
+/* Loading spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse animation for loading states */
+.pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Enhanced focus styles for better accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive utilities */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+.select-none {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Reduce animations on mobile for better performance */
+  .reduce-motion {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .touch-device {
+    /* Larger touch targets */
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .no-touch-hover:hover {
+    background-color: inherit;
+    border-color: inherit;
+    color: inherit;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .landscape-mobile {
+    padding: 0.5rem;
+  }
+
+  .landscape-mobile .game-board {
+    transform: scale(0.8);
+  }
+}
+
+/* Additional polish animations */
+@keyframes slideInFromTop {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-top {
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Improved button hover effects */
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+}
+
+/* Enhanced focus styles */
+.focus-visible {
+  outline: 2px solid theme("colors.blue.500");
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling for modal content */
+.modal-content {
+  scroll-behavior: smooth;
+}
+
+/* Loading animation improvements */
+.loading-dots {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.loading-dots > div {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  animation: loadingDots 1.4s ease-in-out infinite both;
+}
+
+.loading-dots > div:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.loading-dots > div:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.loading-dots > div:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes loadingDots {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
