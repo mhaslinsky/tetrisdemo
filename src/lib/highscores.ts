@@ -111,7 +111,7 @@ export async function initializeHighScores(): Promise<void> {
   try {
     await fs.access(HIGHSCORES_FILE);
   } catch {
-    // File doesn't exist, create it with empty array
+    // File doesn't exist, create it with hardcoded high score
     const initialHighScores: HighScore[] = [
       {
         id: generateId(),
@@ -119,11 +119,10 @@ export async function initializeHighScores(): Promise<void> {
         score: 59395,
         level: 9,
         linesCleared: 85,
-        date: "2025-09-25T00:00:00.000Z",
+        date: new Date().toISOString(),
       },
     ];
     await writeHighScores(initialHighScores);
     console.log("Initialized high scores file with hardcoded score");
-    await writeHighScores([]);
   }
 }
