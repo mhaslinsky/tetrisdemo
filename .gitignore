@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+package-lock.json
 
 # testing
 /coverage
@@ -37,4 +38,3 @@ next-env.d.ts
 # High scores storage (contains user data)
 .highscores.json
 
-package-lock.json
