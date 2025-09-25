@@ -5,55 +5,75 @@ import { HighScore, SubmitHighScoreRequest } from "@/types/highscore";
 const HIGHSCORES_FILE = path.join(process.cwd(), ".highscores.json");
 const MAX_HIGHSCORES = 10;
 
-// Generate unique ID
+// In-memory storage for environments with read-only file systems
+let inMemoryHighScores: HighScore[] | null = null;
+let isFileSystemReadOnly = false;
+
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Read high scores from file
+// Read high scores from file or memory
 async function readHighScores(): Promise<HighScore[]> {
+  // If file system is read-only, use in-memory storage
+  if (isFileSystemReadOnly) {
+    console.log("[readHighScores] Using in-memory storage (read-only filesystem)");
+    return inMemoryHighScores ? [...inMemoryHighScores].sort((a, b) => b.score - a.score) : [];
+  }
+
   try {
     const data = await fs.readFile(HIGHSCORES_FILE, "utf-8");
     const scores = JSON.parse(data) as HighScore[];
+    console.log("[readHighScores] Successfully read", scores.length, "scores from file");
 
-    // Sort by score descending
     return scores.sort((a, b) => b.score - a.score);
   } catch (error) {
     // File doesn't exist or is invalid, return empty array
-    console.log("No high scores file found or invalid format, starting fresh");
+    console.log("[readHighScores] No high scores file found or invalid format, starting fresh");
     return [];
   }
 }
 
-// Write high scores to file
 async function writeHighScores(scores: HighScore[]): Promise<void> {
-  try {
-    // Sort by score descending and take only top 10
-    const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, MAX_HIGHSCORES);
+  const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, MAX_HIGHSCORES);
 
+  // If file system is read-only, store in memory
+  if (isFileSystemReadOnly) {
+    console.log("[writeHighScores] Storing", sortedScores.length, "scores in memory (read-only filesystem)");
+    inMemoryHighScores = [...sortedScores];
+    return;
+  }
+
+  try {
     await fs.writeFile(HIGHSCORES_FILE, JSON.stringify(sortedScores, null, 2), "utf-8");
+    console.log("[writeHighScores] Successfully wrote", sortedScores.length, "scores to file");
   } catch (error) {
-    console.error("Failed to write high scores:", error);
+    console.error("[writeHighScores] Failed to write high scores:", error);
+
+    // Check if it's a read-only filesystem error
+    if ((error as any)?.code === "EROFS") {
+      console.warn("[writeHighScores] Detected read-only filesystem, switching to in-memory storage");
+      isFileSystemReadOnly = true;
+      inMemoryHighScores = [...sortedScores];
+      return;
+    }
+
     throw new Error("Failed to save high score");
   }
 }
 
-// Get all high scores
 export async function getHighScores(): Promise<HighScore[]> {
   return await readHighScores();
 }
 
-// Check if score qualifies for top 10
 export async function qualifiesForHighScore(score: number): Promise<{ qualifies: boolean; rank?: number }> {
   const scores = await readHighScores();
 
-  // If we have less than 10 scores, it automatically qualifies
   if (scores.length < MAX_HIGHSCORES) {
     const rank = scores.filter((s) => s.score > score).length + 1;
     return { qualifies: true, rank };
   }
 
-  // Check if score is higher than the lowest score
   const lowestScore = scores[scores.length - 1].score;
   if (score > lowestScore) {
     const rank = scores.filter((s) => s.score > score).length + 1;
@@ -63,7 +83,6 @@ export async function qualifiesForHighScore(score: number): Promise<{ qualifies:
   return { qualifies: false };
 }
 
-// Submit a new high score
 export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promise<{
   highScores: HighScore[];
   isNewHighScore: boolean;
@@ -71,7 +90,6 @@ export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promis
 }> {
   const scores = await readHighScores();
 
-  // Create new high score entry
   const newScore: HighScore = {
     id: generateId(),
     playerName: scoreData.playerName.trim() || "Anonymous",
@@ -81,22 +99,16 @@ export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promis
     date: new Date().toISOString(),
   };
 
-  // Add the new score
   scores.push(newScore);
 
-  // Sort by score descending
   const sortedScores = scores.sort((a, b) => b.score - a.score);
 
-  // Find the rank of the new score
   const rank = sortedScores.findIndex((s) => s.id === newScore.id) + 1;
 
-  // Check if it's a new high score (top 10)
   const isNewHighScore = rank <= MAX_HIGHSCORES;
 
-  // Keep only top 10
   const finalScores = sortedScores.slice(0, MAX_HIGHSCORES);
 
-  // Save to file
   await writeHighScores(finalScores);
 
   return {
@@ -106,12 +118,34 @@ export async function submitHighScore(scoreData: SubmitHighScoreRequest): Promis
   };
 }
 
-// Initialize high scores file if it doesn't exist
 export async function initializeHighScores(): Promise<void> {
+  console.log("[initializeHighScores] Checking high scores initialization");
+
+  // If already using in-memory storage, initialize it if empty
+  if (isFileSystemReadOnly) {
+    if (!inMemoryHighScores || inMemoryHighScores.length === 0) {
+      const initialHighScores: HighScore[] = [
+        {
+          id: generateId(),
+          playerName: "Mike H",
+          score: 59395,
+          level: 9,
+          linesCleared: 85,
+          date: new Date().toISOString(),
+        },
+      ];
+      inMemoryHighScores = initialHighScores;
+      console.log("[initializeHighScores] Initialized in-memory high scores with hardcoded score");
+    }
+    return;
+  }
+
   try {
     await fs.access(HIGHSCORES_FILE);
+    console.log("[initializeHighScores] High scores file already exists");
   } catch {
     // File doesn't exist, create it with hardcoded high score
+    console.log("[initializeHighScores] Creating new high scores file");
     const initialHighScores: HighScore[] = [
       {
         id: generateId(),
@@ -122,7 +156,12 @@ export async function initializeHighScores(): Promise<void> {
         date: new Date().toISOString(),
       },
     ];
-    await writeHighScores(initialHighScores);
-    console.log("Initialized high scores file with hardcoded score");
+
+    try {
+      await writeHighScores(initialHighScores);
+      console.log("[initializeHighScores] Initialized high scores file with hardcoded score");
+    } catch (error) {
+      console.warn("[initializeHighScores] Failed to create file, likely read-only filesystem:", error);
+    }
   }
 }
