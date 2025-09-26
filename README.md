@@ -1,3 +1,7 @@
+# Hosted
+
+https://tetrisdemo-zuug.vercel.app/
+
 # Tetris Web Game
 
 A modern, fully-featured Tetris game built with Next.js, React, and TypeScript. This implementation follows classic Tetris gameplay mechanics while incorporating modern web technologies and accessibility features.
